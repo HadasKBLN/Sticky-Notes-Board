@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Docker Sticky Notes</title>
+    <link href="https://fonts.googleapis.com/css2?family=Reenie+Beanie&family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Ubuntu', sans-serif; background-color: #f0f2f5; display: flex; flex-direction: column; align-items: center; padding: 50px; }
+        h1 { color: #333; }
+        .input-container { margin: 30px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        input { padding: 10px; border: 1px solid #ddd; border-radius: 4px; width: 250px; }
+        button { padding: 10px 20px; background-color: #ff5722; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        #notesList { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; width: 100%; max-width: 800px; list-style: none; }
+        .note-card { background: #ffeb3b; padding: 20px; aspect-ratio: 1/1; box-shadow: 5px 5px 10px rgba(0,0,0,0.1); font-family: 'Reenie Beanie', cursive; font-size: 1.8rem; transform: rotate(-2deg); display: flex; align-items: center; justify-content: center; text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>Sticky Notes Dashboard</h1>
+    <div class="input-container">
+        <input id="noteInput" type="text" placeholder="Write a note...">
+        <button onclick="addNote()">Post it!</button>
+    </div>
+    <ul id="notesList"></ul>
+    <script>
+        const API_URL = 'http://localhost:5000/notes';
+        async function loadNotes() {
+            try {
+                const res = await fetch(API_URL);
+                const notes = await res.json();
+                document.getElementById('notesList').innerHTML = notes.map(n => `<li class="note-card">${n}</li>`).join('');
+            } catch (err) { console.error("Backend unreachable"); }
+        }
+        async function addNote() {
+            const input = document.getElementById('noteInput');
+            if (!input.value) return;
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({note: input.value})
+            });
+            input.value = '';
+            loadNotes();
+        }
+        setInterval(loadNotes, 3000);
+        loadNotes();
+    </script>
+</body>
+</html>
